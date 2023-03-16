@@ -1,0 +1,4 @@
+LIBRARY	"ExternalEmittanceFix"
+EXPORTS
+NVSEPlugin_Query
+NVSEPlugin_Load
