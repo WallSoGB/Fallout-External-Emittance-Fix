@@ -5,6 +5,7 @@
 #include <string>
 
 NVSEInterface* g_nvseInterface{};
+IDebugLog	   gLog("logs\\EEF.log");
 
 bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 {
@@ -48,7 +49,6 @@ void __fastcall Sky_FillColorBlendColors(Sky* thiss, void*, Sky::COLOR_BLEND* aC
 	if (!pCurrentRegionWeather) {
 		pCurrentRegionWeather = apCurrentWeather;
 	}
-
 	// Duplicate colors of the TESRegion weather itself in case next checks fail - prevents starting from black
 	aColorBlend->uiRGBVal[2] = apCurrentWeather->uiColorData[4][*aeTime1];
 	aColorBlend->uiRGBVal[3] = apCurrentWeather->uiColorData[4][*aeTime2];
@@ -73,7 +73,7 @@ void __fastcall Sky_SetColor(Sky* thiss, void*, NiColor* aColor, Sky::COLOR_BLEN
 	const TESWeather* pCurrentNormalWeather = thiss->pCurrentWeather;
 
 	// Skip recalculating colors if we already have them used
-	if (pCurrentNormalWeather && (pCurrentRegionWeather == pCurrentNormalWeather)) {
+	if (pCurrentNormalWeather && (pCurrentRegionWeather == pCurrentNormalWeather) && !((*g_thePlayer)->parentCell->cellFlags & 1)) {
 		aColor->r = thiss->pColors[4].r;
 		aColor->g = thiss->pColors[4].g;
 		aColor->b = thiss->pColors[4].b;
