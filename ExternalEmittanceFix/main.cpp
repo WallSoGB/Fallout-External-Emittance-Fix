@@ -11,7 +11,7 @@ bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 {
 	info->infoVersion = PluginInfo::kInfoVersion;
 	info->name = "External Emittance Fix";
-	info->version = 110;
+	info->version = 120;
 
 	return true;
 }
@@ -22,7 +22,7 @@ bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInfo* info)
 // Issue? Since there's no history of the previous weather, color blend calculations start from black, which obv paints every EE user dark for the first minute or so.
 // This code aims to fix that by reusing current Sky weather if applicable, and keeping the data of the last used weather.
 
-const TESWeather* pCurrentRegionWeather = nullptr;
+static const TESWeather* pCurrentRegionWeather = nullptr;
 
 TESWeather* __fastcall TESRegion_GetWeather(TESRegion* thiss) {
 	if (thiss->weather) {
@@ -69,20 +69,6 @@ void __fastcall Sky_FillColorBlendColors(Sky* thiss, void*, Sky::COLOR_BLEND* aC
 	aColorBlend->uiRGBVal[1] = apCurrentWeather->uiColorData[4][*aeTime2];
 }
 
-void __fastcall Sky_SetColor(Sky* thiss, void*, NiColor* aColor, Sky::COLOR_BLEND* apColorBlend, float afAddFlash) {
-	const TESWeather* pCurrentNormalWeather = thiss->pCurrentWeather;
-
-	// Skip recalculating colors if we already have them used
-	if (pCurrentNormalWeather && (pCurrentRegionWeather == pCurrentNormalWeather) && !((*g_thePlayer)->parentCell->cellFlags & 1)) {
-		aColor->r = thiss->pColors[4].r;
-		aColor->g = thiss->pColors[4].g;
-		aColor->b = thiss->pColors[4].b;
-	}
-	else {
-		ThisStdCall(0x63C690, thiss, aColor, apColorBlend, afAddFlash); // Sky::SetColor
-	}
-}
-
 bool NVSEPlugin_Load(NVSEInterface* nvse) {
 	if (!nvse->isEditor) {
 		WriteRelCall(0x551ECE, UInt32(TESRegion_GetWeather));
@@ -90,9 +76,6 @@ bool NVSEPlugin_Load(NVSEInterface* nvse) {
 
 		WriteRelCall(0x551F5F, UInt32(Sky_FillColorBlendColors));
 		WriteRelCall(0x552205, UInt32(Sky_FillColorBlendColors));
-
-		WriteRelCall(0x551FA8, UInt32(Sky_SetColor));
-		WriteRelCall(0x552251, UInt32(Sky_SetColor));
 	}
 
 	return true;
